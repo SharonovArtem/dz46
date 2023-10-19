@@ -1,0 +1,127 @@
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleApp14
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            BattleField battleField = new BattleField();
+
+            battleField.MakeBattle();
+        }
+    }
+
+    class Platoon
+    {
+        private List<Soldier> _soldiers = new List<Soldier>();
+
+        public void CreateSoldiers()
+        {
+            Random random = new Random();
+            int randomNumber;
+            int minimalRandomHp = 80;
+            int maximalRandomHp = 120;
+            int randomHp;
+            int minimalRandomDamage = 8;
+            int maximalRandomDamage = 15;
+            int randomDamage;
+
+            randomNumber = random.Next(20, 30);
+
+            for (int i = 0; i < randomNumber; i++)
+            {
+                randomHp = random.Next(minimalRandomHp, maximalRandomHp);
+                randomDamage = random.Next(minimalRandomDamage, maximalRandomDamage);
+
+                Soldier soldier = new Soldier(randomHp, randomDamage);
+
+                _soldiers.Add(soldier);
+            }
+        }
+
+        public List<Soldier> ReturnSoldiers()
+        {
+            return _soldiers;
+        }
+    }
+
+    class Soldier
+    {
+        public Soldier(int hp, int damage)
+        {
+            Hp = hp;
+            Damage = damage;
+        }
+
+        public int Hp { get; private set; }
+        public int Damage { get; private set; }
+
+        public void TakeDamage(int damage)
+        {
+            Hp -= damage;
+        }
+    }
+
+    class BattleField
+    {
+        private Platoon _platoon1 = new Platoon();
+        private Platoon _platoon2 = new Platoon();
+
+        public void MakeBattle()
+        {
+            Random random = new Random();
+            int pickedRandomSoldier1 = 0;
+            int pickedRandomSoldier2 = 0;
+
+            _platoon1.CreateSoldiers();
+            _platoon2.CreateSoldiers();
+
+            while (true)
+            {
+                if (_platoon1.ReturnSoldiers().Count == 0 || _platoon2.ReturnSoldiers().Count == 0)
+                {
+                    if (_platoon1.ReturnSoldiers().Count != 0)
+                    {
+                        Console.WriteLine("Победил первый взвод!");
+                    }
+
+                    if (_platoon2.ReturnSoldiers().Count != 0)
+                    {
+                        Console.WriteLine("Победил второй взвод!");
+                    }
+
+                    return;
+                }
+                else
+                {
+                    pickedRandomSoldier1 = random.Next(0, _platoon1.ReturnSoldiers().Count - 1);
+                    pickedRandomSoldier2 = random.Next(0, _platoon2.ReturnSoldiers().Count - 1);
+                }
+
+                _platoon1.ReturnSoldiers()[pickedRandomSoldier1].TakeDamage(_platoon2.ReturnSoldiers()[pickedRandomSoldier2].Damage);
+
+                Console.WriteLine("Боец из второго взвода нанёс бойцу из первого взвода " + _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Damage + " урона");
+                Console.WriteLine("У бойца первого взвода осталось " + _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Hp + " Жизней");
+
+                _platoon2.ReturnSoldiers()[pickedRandomSoldier2].TakeDamage(_platoon1.ReturnSoldiers()[pickedRandomSoldier1].Damage);
+
+                Console.WriteLine("Боец из первого взвода нанёс бойцу из второго взвода " + _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Damage + " урона");
+                Console.WriteLine("У бойца второго взвода осталось " + _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Hp + " Жизней");
+
+                if (_platoon1.ReturnSoldiers()[pickedRandomSoldier1].Hp <= 0)
+                {
+                    Console.WriteLine("Боец первого взвода погиб");
+                    _platoon1.ReturnSoldiers().Remove(_platoon1.ReturnSoldiers()[pickedRandomSoldier1]);
+                }
+
+                if (_platoon2.ReturnSoldiers()[pickedRandomSoldier2].Hp <= 0)
+                {
+                    Console.WriteLine("Боец второго взвода погиб");
+                    _platoon2.ReturnSoldiers().Remove(_platoon2.ReturnSoldiers()[pickedRandomSoldier2]);
+                }
+            }
+        }
+    }
+}
