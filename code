@@ -16,24 +16,31 @@ namespace ConsoleApp14
     class Platoon
     {
         private List<Soldier> _soldiers = new List<Soldier>();
+        public int Id { get; private set; }
+
+        public Platoon(int id)
+        {
+            Id = id;
+        }
 
         public void CreateSoldiers()
         {
-            Random random = new Random();
             int randomNumber;
             int minimalRandomHp = 80;
             int maximalRandomHp = 120;
+            int minimalNumberOfSoldiers = 20;
+            int maximalNumberOfSoldiers = 30;
             int randomHp;
             int minimalRandomDamage = 8;
             int maximalRandomDamage = 15;
             int randomDamage;
 
-            randomNumber = random.Next(20, 30);
+            randomNumber = UserUtils.GenerateRandomNumber(minimalNumberOfSoldiers, maximalNumberOfSoldiers);
 
             for (int i = 0; i < randomNumber; i++)
             {
-                randomHp = random.Next(minimalRandomHp, maximalRandomHp);
-                randomDamage = random.Next(minimalRandomDamage, maximalRandomDamage);
+                randomHp = UserUtils.GenerateRandomNumber(minimalRandomHp, maximalRandomHp);
+                randomDamage = UserUtils.GenerateRandomNumber(minimalRandomDamage, maximalRandomDamage);
 
                 Soldier soldier = new Soldier(randomHp, randomDamage);
 
@@ -43,85 +50,91 @@ namespace ConsoleApp14
 
         public List<Soldier> ReturnSoldiers()
         {
-            return _soldiers;
+            List<Soldier> soldiers = _soldiers;
+            return soldiers;
         }
     }
 
     class Soldier
     {
-        public Soldier(int hp, int damage)
+        public Soldier(int health, int damage)
         {
-            Hp = hp;
+            Health = health;
             Damage = damage;
         }
 
-        public int Hp { get; private set; }
+        public int Health { get; private set; }
         public int Damage { get; private set; }
 
         public void TakeDamage(int damage)
         {
-            Hp -= damage;
+            Health -= damage;
+        }
+
+        public void Attack(Soldier soldier, int damage, Platoon platoon1, Platoon platoon2, int pickedRandomSoldier2, int pickedRandomSoldier1)
+        {
+            soldier.TakeDamage(damage);
+
+            Console.WriteLine("Боец из взвода " + platoon2.Id + " нанёс бойцу из взвода " + platoon1.Id + " "+ platoon2.ReturnSoldiers()[pickedRandomSoldier2].Damage + " урона");
+            Console.WriteLine("У бойца первого взвода осталось " + platoon1.ReturnSoldiers()[pickedRandomSoldier1].Health + " Жизней");
         }
     }
 
     class BattleField
     {
-        private Platoon _platoon1 = new Platoon();
-        private Platoon _platoon2 = new Platoon();
+        private Platoon _platoon1 = new Platoon(1);
+        private Platoon _platoon2 = new Platoon(2);
 
         public void MakeBattle()
         {
-            Random random = new Random();
             int pickedRandomSoldier1 = 0;
             int pickedRandomSoldier2 = 0;
 
             _platoon1.CreateSoldiers();
             _platoon2.CreateSoldiers();
 
-            while (true)
-            {
-                if (_platoon1.ReturnSoldiers().Count == 0 || _platoon2.ReturnSoldiers().Count == 0)
-                {
-                    if (_platoon1.ReturnSoldiers().Count != 0)
-                    {
-                        Console.WriteLine("Победил первый взвод!");
-                    }
+            while (_platoon1.ReturnSoldiers().Count > 0 && _platoon2.ReturnSoldiers().Count > 0)
+            {                
+                pickedRandomSoldier1 = UserUtils.GenerateRandomNumber(0, _platoon1.ReturnSoldiers().Count - 1);
+                pickedRandomSoldier2 = UserUtils.GenerateRandomNumber(0, _platoon2.ReturnSoldiers().Count - 1);                
 
-                    if (_platoon2.ReturnSoldiers().Count != 0)
-                    {
-                        Console.WriteLine("Победил второй взвод!");
-                    }
-
-                    return;
-                }
-                else
-                {
-                    pickedRandomSoldier1 = random.Next(0, _platoon1.ReturnSoldiers().Count - 1);
-                    pickedRandomSoldier2 = random.Next(0, _platoon2.ReturnSoldiers().Count - 1);
-                }
-
-                _platoon1.ReturnSoldiers()[pickedRandomSoldier1].TakeDamage(_platoon2.ReturnSoldiers()[pickedRandomSoldier2].Damage);
-
-                Console.WriteLine("Боец из второго взвода нанёс бойцу из первого взвода " + _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Damage + " урона");
-                Console.WriteLine("У бойца первого взвода осталось " + _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Hp + " Жизней");
-
-                _platoon2.ReturnSoldiers()[pickedRandomSoldier2].TakeDamage(_platoon1.ReturnSoldiers()[pickedRandomSoldier1].Damage);
-
-                Console.WriteLine("Боец из первого взвода нанёс бойцу из второго взвода " + _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Damage + " урона");
-                Console.WriteLine("У бойца второго взвода осталось " + _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Hp + " Жизней");
-
-                if (_platoon1.ReturnSoldiers()[pickedRandomSoldier1].Hp <= 0)
+                _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Attack(_platoon2.ReturnSoldiers()[pickedRandomSoldier2], _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Damage, _platoon2, _platoon1, pickedRandomSoldier2, pickedRandomSoldier1);
+                
+                _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Attack(_platoon1.ReturnSoldiers()[pickedRandomSoldier1], _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Damage, _platoon1, _platoon2, pickedRandomSoldier1, pickedRandomSoldier2);
+               
+                if (_platoon1.ReturnSoldiers()[pickedRandomSoldier1].Health <= 0)
                 {
                     Console.WriteLine("Боец первого взвода погиб");
                     _platoon1.ReturnSoldiers().Remove(_platoon1.ReturnSoldiers()[pickedRandomSoldier1]);
                 }
 
-                if (_platoon2.ReturnSoldiers()[pickedRandomSoldier2].Hp <= 0)
+                if (_platoon2.ReturnSoldiers()[pickedRandomSoldier2].Health <= 0)
                 {
                     Console.WriteLine("Боец второго взвода погиб");
                     _platoon2.ReturnSoldiers().Remove(_platoon2.ReturnSoldiers()[pickedRandomSoldier2]);
                 }
             }
+
+            if (_platoon1.ReturnSoldiers().Count != 0)
+            {
+                Console.WriteLine("Победил первый взвод!");
+            }
+            else if (_platoon2.ReturnSoldiers().Count != 0)
+            {
+                Console.WriteLine("Победил второй взвод!");
+            }
+        }
+    }
+
+    class UserUtils
+    {
+        public static int GenerateRandomNumber(int minimalNumber, int maximalNumber)
+        {
+            int number;
+            Random random = new Random();
+
+            number = random.Next(minimalNumber, maximalNumber);
+            return number;
         }
     }
 }
