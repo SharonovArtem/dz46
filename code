@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ConsoleApp14
 {
@@ -25,12 +26,22 @@ namespace ConsoleApp14
 
         public void CreateSoldiers()
         {
+            int minimalRandomBoostedHealth = 150;
+            int maximalRandomBoostedHealth = 200;
+            int minimalRandomBoostedDamage = 20;
+            int maximalRandomBoostedDamage = 30;
+            int boostedHealthType = 1;
+            int boostedDamageType = 2;
+            int TankType = 3;
+            int minimalRandomNumberOfType = 1;
+            int maximalRandomNumberOfType = 4;
+            int randomNumberOfType;
             int randomNumber;
-            int minimalRandomHp = 80;
-            int maximalRandomHp = 120;
+            int minimalRandomHealth = 80;
+            int maximalRandomHealth = 120;
             int minimalNumberOfSoldiers = 20;
             int maximalNumberOfSoldiers = 30;
-            int randomHp;
+            int randomHealth;
             int minimalRandomDamage = 8;
             int maximalRandomDamage = 15;
             int randomDamage;
@@ -39,18 +50,51 @@ namespace ConsoleApp14
 
             for (int i = 0; i < randomNumber; i++)
             {
-                randomHp = UserUtils.GenerateRandomNumber(minimalRandomHp, maximalRandomHp);
-                randomDamage = UserUtils.GenerateRandomNumber(minimalRandomDamage, maximalRandomDamage);
+                randomNumberOfType = UserUtils.GenerateRandomNumber(minimalRandomNumberOfType, maximalRandomNumberOfType);
 
-                Soldier soldier = new Soldier(randomHp, randomDamage);
+                if (randomNumberOfType == boostedHealthType)
+                {
+                    randomHealth = UserUtils.GenerateRandomNumber(minimalRandomBoostedHealth, maximalRandomBoostedHealth);
+                    randomDamage = UserUtils.GenerateRandomNumber(minimalRandomDamage, maximalRandomDamage);
 
-                _soldiers.Add(soldier);
+                    Soldier soldier = new Soldier(randomHealth, randomDamage);
+
+                    _soldiers.Add(soldier);
+                }
+                else if (randomNumberOfType == boostedDamageType)
+                {
+                    randomHealth = UserUtils.GenerateRandomNumber(minimalRandomHealth, maximalRandomHealth);
+                    randomDamage = UserUtils.GenerateRandomNumber(minimalRandomBoostedDamage, maximalRandomBoostedDamage);
+
+                    Soldier soldier = new Soldier(randomHealth, randomDamage);
+
+                    _soldiers.Add(soldier);
+                }
+                else if (randomNumberOfType == TankType)
+                {
+                    randomHealth = UserUtils.GenerateRandomNumber(minimalRandomBoostedHealth, maximalRandomBoostedHealth);
+                    randomDamage = UserUtils.GenerateRandomNumber(minimalRandomBoostedDamage, maximalRandomBoostedDamage);
+
+                    Soldier soldier = new Soldier(randomHealth, randomDamage);
+
+                    _soldiers.Add(soldier);
+                }
+                else
+                {
+                    randomHealth = UserUtils.GenerateRandomNumber(minimalRandomHealth, maximalRandomHealth);
+                    randomDamage = UserUtils.GenerateRandomNumber(minimalRandomDamage, maximalRandomDamage);
+
+                    Soldier soldier = new Soldier(randomHealth, randomDamage);
+
+                    _soldiers.Add(soldier);
+                }
             }
         }
 
         public List<Soldier> ReturnSoldiers()
         {
             List<Soldier> soldiers = _soldiers;
+
             return soldiers;
         }
     }
@@ -71,12 +115,13 @@ namespace ConsoleApp14
             Health -= damage;
         }
 
-        public void Attack(Soldier soldier, int damage, Platoon platoon1, Platoon platoon2, int pickedRandomSoldier2, int pickedRandomSoldier1)
+        public void Attack(Soldier soldier, int damage, int id1, int id2)
         {
             soldier.TakeDamage(damage);
 
-            Console.WriteLine("Боец из взвода " + platoon2.Id + " нанёс бойцу из взвода " + platoon1.Id + " "+ platoon2.ReturnSoldiers()[pickedRandomSoldier2].Damage + " урона");
-            Console.WriteLine("У бойца первого взвода осталось " + platoon1.ReturnSoldiers()[pickedRandomSoldier1].Health + " Жизней");
+            Console.WriteLine("Атакует боец из взвода " + id1);
+            Console.WriteLine("Полученный солдатом взвода " + id2 + " урон - " + damage);
+            Console.WriteLine("Осталось жизней - " + soldier.Health);
         }
     }
 
@@ -94,23 +139,25 @@ namespace ConsoleApp14
             _platoon2.CreateSoldiers();
 
             while (_platoon1.ReturnSoldiers().Count > 0 && _platoon2.ReturnSoldiers().Count > 0)
-            {                
+            {
                 pickedRandomSoldier1 = UserUtils.GenerateRandomNumber(0, _platoon1.ReturnSoldiers().Count - 1);
-                pickedRandomSoldier2 = UserUtils.GenerateRandomNumber(0, _platoon2.ReturnSoldiers().Count - 1);                
+                pickedRandomSoldier2 = UserUtils.GenerateRandomNumber(0, _platoon2.ReturnSoldiers().Count - 1);
 
-                _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Attack(_platoon2.ReturnSoldiers()[pickedRandomSoldier2], _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Damage, _platoon2, _platoon1, pickedRandomSoldier2, pickedRandomSoldier1);
-                
-                _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Attack(_platoon1.ReturnSoldiers()[pickedRandomSoldier1], _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Damage, _platoon1, _platoon2, pickedRandomSoldier1, pickedRandomSoldier2);
-               
+                _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Attack(_platoon2.ReturnSoldiers()[pickedRandomSoldier2], _platoon1.ReturnSoldiers()[pickedRandomSoldier1].Damage, _platoon1.Id, _platoon2.Id);
+
+                _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Attack(_platoon1.ReturnSoldiers()[pickedRandomSoldier1], _platoon2.ReturnSoldiers()[pickedRandomSoldier2].Damage, _platoon2.Id, _platoon1.Id);
+
                 if (_platoon1.ReturnSoldiers()[pickedRandomSoldier1].Health <= 0)
                 {
                     Console.WriteLine("Боец первого взвода погиб");
+
                     _platoon1.ReturnSoldiers().Remove(_platoon1.ReturnSoldiers()[pickedRandomSoldier1]);
                 }
 
                 if (_platoon2.ReturnSoldiers()[pickedRandomSoldier2].Health <= 0)
                 {
                     Console.WriteLine("Боец второго взвода погиб");
+
                     _platoon2.ReturnSoldiers().Remove(_platoon2.ReturnSoldiers()[pickedRandomSoldier2]);
                 }
             }
@@ -128,10 +175,11 @@ namespace ConsoleApp14
 
     class UserUtils
     {
+        public static Random random = new Random();
+
         public static int GenerateRandomNumber(int minimalNumber, int maximalNumber)
         {
-            int number;
-            Random random = new Random();
+            int number;            
 
             number = random.Next(minimalNumber, maximalNumber);
             return number;
